@@ -1,6 +1,7 @@
 """Includes utils such as Tokenizer and Dataset class for museC."""
 
 import copy
+import json
 import random
 import torch
 import pyroll
@@ -192,8 +193,63 @@ class Tokenizer:
 
 
 class Dataset(torch.utils.data.Dataset):
-    def __init__(self):
-        pass
+    """PyTorch Dataset class for training data.
+
+    Args:
+        dataset (Dataset): Dataset (PianoRoll) for training.
+        tokenizer (model.Tokenizer): Tokenizer subclass holding methods for
+            PianoRoll to torch.Tensor conversion.
+        split (str): Whether to use train or test set.
+    """
+
+    def __init__(
+        self,
+        tokenizer: Tokenizer,
+        data: list = [],
+    ):
+        super().__init__()
+
+        self.tokenizer = tokenizer
+        self.data = data
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx: int):
+        return self.tokenizer.apply(self.data[idx])
+
+    @classmethod
+    def from_pianoroll_dataset(
+        cls,
+        dataset: pyroll.PianoRollDataset,
+        tokenizer: Tokenizer,
+    ):
+        """Uses tokenizer.seq() to sequentialise dataset."""
+        data = []
+        for piano_roll in dataset.data:
+            data += tokenizer.format(piano_roll)
+
+        return Dataset(tokenizer, data)
+
+    @classmethod
+    def from_json(
+        cls,
+        load_path: str,
+        tokenizer: Tokenizer,
+        key: str | None = None,
+    ):
+        with open(load_path) as f:
+            if key is None:
+                data = json.load(f)
+            else:
+                data = json.load(f)[key]
+
+        assert isinstance(data, list), "Loaded data must be a list."
+        assert (
+            len(data[0]) == tokenizer.config.max_seq_len
+        ), "Sequence len mismatch."
+
+        return Dataset(tokenizer, data)
 
 
 def main():
@@ -202,7 +258,7 @@ def main():
     mid = mido.MidiFile("chopin.mid")
     piano_roll = pyroll.PianoRoll.from_midi(mid, 4)
 
-    config = Config()
+    config = ModelConfig()
     tokenizer = Tokenizer(config, pitch_aug_range=0)
 
     seqs = tokenizer.format(piano_roll)
