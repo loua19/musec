@@ -17,11 +17,10 @@ from utils import Tokenizer, Dataset
 class PretrainLM(pl.LightningModule):
     """PyTorch Lightning Module for TransformerLM."""
 
-    def __init__(self, model_config: ModelConfig, lr: float):
+    def __init__(self, model_config: ModelConfig):
         super().__init__()
         self.save_hyperparameters()
 
-        self.lr = lr
         self.model = TransformerLM(model_config)
         self.loss_fn = nn.CrossEntropyLoss(ignore_index=model_config.pad_id)
 
@@ -61,7 +60,25 @@ class PretrainLM(pl.LightningModule):
         )
 
     def configure_optimizers(self):  # Change to LLAMA
-        return torch.optim.Adam(self.model.parameters(), lr=self.lr)
+        # From LLaMa
+        lr = 3e-4
+        betas = (0.9, 0.95)
+        weight_decay = 0.1
+        T_max = 10
+        optimizer = torch.optim.Adam(
+            params=self.model.parameters(),
+            lr=lr,
+            betas=betas,
+            weight_decay=weight_decay,
+        )
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer=optimizer,
+            T_max=T_max,
+            eta_min=0.1 * lr,
+            verbose=True,
+        )
+
+        return {"optimizer": optimizer, "lr_scheduler": scheduler}
 
 
 def train(
@@ -92,6 +109,7 @@ def train(
     # See https://shorturl.at/AGHZ3
     checkpoint_callback = ModelCheckpoint(
         filename="{epoch}-{train_loss}-{val_loss}",
+        save_last=True,
         save_top_k=5,
         monitor="val_loss",
         save_weights_only=False,
@@ -100,8 +118,10 @@ def train(
     a100_re = re.compile(r"[aA]100")
     v100_re = re.compile(r"[vV]100")
     if a100_re.search(torch.cuda.get_device_name(0)):
+        print("A100 detected")
         prec = "bf16"
     elif v100_re.search(torch.cuda.get_device_name(0)):
+        print("V100 detected")
         prec = "16-mixed"
     else:
         print("GPU not A100 or V100")

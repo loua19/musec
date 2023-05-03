@@ -161,7 +161,7 @@ class Tokenizer:
                 tgt.append([seq[idx + 1]])
             else:
                 buffer = _aug_buffer(buffer)
-                # random.shuffle(buffer)  # UNCOMMENT
+                random.shuffle(buffer)
 
                 # Add time_tok (or bos_tok or eos_tok) to src, tgt
                 src.append(seq[idx])
@@ -250,19 +250,3 @@ class Dataset(torch.utils.data.Dataset):
         ), "Sequence len mismatch."
 
         return Dataset(tokenizer, data)
-
-
-def main():
-    proll_dataset = pyroll.PianoRollDataset.build(
-        "test_data",
-        recur=True,
-        extension="midi",
-    )
-
-    model_config = ModelConfig()
-    tokenizer = Tokenizer(model_config, pitch_aug_range=0)
-    train_dataset = Dataset.from_pianoroll_dataset(proll_dataset, tokenizer)
-
-
-if __name__ == "__main__":
-    main()
