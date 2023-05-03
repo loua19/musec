@@ -6,7 +6,8 @@ init:
 	pip install -r req-dev.txt
 
 data:
-	echo "getting data"
+	sudo apt-get install gsutil
+	gsutil cp gs://muse-model/museC_data/test_data.json data/train.json
 	
 params:
 	echo "getting params"
