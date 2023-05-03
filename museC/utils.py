@@ -8,12 +8,12 @@ import pyroll
 
 import torch.nn.functional as F
 
-from .model import ModelConfig
+from model import ModelConfig
 
 
 class Tokenizer:
-    def __init__(self, config: ModelConfig, pitch_aug_range: int):
-        self.config = config
+    def __init__(self, model_config: ModelConfig, pitch_aug_range: int):
+        self.model_config = model_config
         self.pitch_aug_range = pitch_aug_range
 
         # Special tokens
@@ -41,7 +41,8 @@ class Tokenizer:
         self.vocab_size = len(self.vocab)
 
         # Adjust model_config settings
-        config.vocab_size = self.vocab_size
+        model_config.vocab_size = self.vocab_size
+        model_config.pad_id = self.tok_to_id[self.pad_tok]
 
     def encode(self, src: list):
         """Encodes a formatted piano-roll."""
@@ -95,8 +96,8 @@ class Tokenizer:
 
             return seq
 
-        max_seq_len = self.config.max_seq_len
-        stride_len = self.config.stride_len
+        max_seq_len = self.model_config.max_seq_len
+        stride_len = self.model_config.stride_len
         roll = copy.deepcopy(piano_roll.roll)
 
         # Calculates cumulative sum of chord lengths
@@ -135,7 +136,7 @@ class Tokenizer:
             return [(entry[0] + pitch_aug, entry[1]) for entry in buffer]
 
         pitch_aug = random.randint(-self.pitch_aug_range, self.pitch_aug_range)
-        max_seq_len = self.config.max_seq_len
+        max_seq_len = self.model_config.max_seq_len
 
         src = []
         tgt = []
@@ -224,7 +225,6 @@ class Dataset(torch.utils.data.Dataset):
         dataset: pyroll.PianoRollDataset,
         tokenizer: Tokenizer,
     ):
-        """Uses tokenizer.seq() to sequentialise dataset."""
         data = []
         for piano_roll in dataset.data:
             data += tokenizer.format(piano_roll)
@@ -246,26 +246,22 @@ class Dataset(torch.utils.data.Dataset):
 
         assert isinstance(data, list), "Loaded data must be a list."
         assert (
-            len(data[0]) == tokenizer.config.max_seq_len
+            len(data[0]) == tokenizer.model_config.max_seq_len
         ), "Sequence len mismatch."
 
         return Dataset(tokenizer, data)
 
 
 def main():
-    import mido
+    proll_dataset = pyroll.PianoRollDataset.build(
+        "test_data",
+        recur=True,
+        extension="midi",
+    )
 
-    mid = mido.MidiFile("chopin.mid")
-    piano_roll = pyroll.PianoRoll.from_midi(mid, 4)
-
-    config = ModelConfig()
-    tokenizer = Tokenizer(config, pitch_aug_range=0)
-
-    seqs = tokenizer.format(piano_roll)
-    seq = seqs[0]
-    print(seq)
-
-    src, tgt = tokenizer.apply(seq)
+    model_config = ModelConfig()
+    tokenizer = Tokenizer(model_config, pitch_aug_range=0)
+    train_dataset = Dataset.from_pianoroll_dataset(proll_dataset, tokenizer)
 
 
 if __name__ == "__main__":

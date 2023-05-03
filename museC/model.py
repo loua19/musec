@@ -21,6 +21,7 @@ class ModelConfig:
 
     # Set according to tokenizer
     vocab_size: int = -1
+    pad_id: int = -1
 
 
 # Taken from facebookresearch/llama/model.py
