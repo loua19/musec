@@ -1,0 +1,3 @@
+torch >= 2.0
+lightning
+pyroll @ git+https://github.com/loua19/pyroll@main
