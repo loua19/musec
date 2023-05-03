@@ -12,7 +12,7 @@ from model import ModelConfig
 
 
 class Tokenizer:
-    def __init__(self, model_config: ModelConfig, pitch_aug_range: int):
+    def __init__(self, model_config: ModelConfig, pitch_aug_range: int = 4):
         self.model_config = model_config
         self.pitch_aug_range = pitch_aug_range
 
@@ -243,6 +243,12 @@ class Dataset(torch.utils.data.Dataset):
                 data = json.load(f)
             else:
                 data = json.load(f)[key]
+        
+        # Converts lists back into tuples (json converts tuples to lists)
+        for seq in data:
+            for i, tok in enumerate(seq):
+                if isinstance(tok, list):
+                    seq[i] = tuple(tok)
 
         assert isinstance(data, list), "Loaded data must be a list."
         assert (
