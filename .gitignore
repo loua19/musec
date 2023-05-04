@@ -4,7 +4,9 @@
 **__pycache__/
 **tempCodeRunnerFile.py
 
-notes.txt
-data
 # For development 
-museC/data.py
+notes.txt
+notebooks/
+data/
+musec/data.py
+lightning_logs/
