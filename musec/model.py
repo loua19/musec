@@ -10,9 +10,9 @@ from dataclasses import dataclass
 
 @dataclass
 class ModelConfig:
-    d_model: int = 528
-    n_heads: int = 22
-    n_layers: int = 48
+    d_model: int = 8
+    n_heads: int = 2
+    n_layers: int = 2
     ff_mult: int = 4
     drop_p = 0.1
     max_seq_len: int = 2048
@@ -202,6 +202,7 @@ class Transformer(nn.Module):
         hidden_states = self.tok_embeddings(src)
 
         # Slices freqs_cis (pos embeddings) according to src seq_len
+        assert src.shape[1] <= self.model_config.max_seq_len, "Too long."
         freqs_cis = torch.view_as_complex(self.freqs_cis)[: src.shape[1]]
 
         # Implements gradient checkpoints on Encoder Layers.
@@ -263,7 +264,8 @@ class TransformerLM(nn.Module):
                 seq_len, d_model).
 
         Returns:
-            torch.tensor: Forward pass of src through the encoder block.
+            torch.tensor: Forward pass of src through Transformer and LM head.
+                Has shape (batch_size, seq_len, vocab_size).
         """
         logits = self.lm_head(self.model(src))
 

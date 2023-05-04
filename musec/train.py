@@ -22,14 +22,19 @@ class PretrainLM(pl.LightningModule):
         self.save_hyperparameters()
 
         self.model = TransformerLM(model_config)
-        self.loss_fn = nn.CrossEntropyLoss(ignore_index=model_config.pad_id)
+        self.loss_fn = nn.CrossEntropyLoss()  # Not ignoring pad_tok
 
     def forward(self, src: torch.Tensor):
         return self.model(src)
 
     def training_step(self, batch, batch_idx):
-        src, tgt = batch
-        logits = self.model(src).transpose(1, 2)
+        src, tgt = batch  # (b_sz, s_len), (b_sz, s_len, v_sz)
+        logits = self.model(src)  # (b_sz, s_len, v_sz)
+
+        # Transpose for CrossEntropyLoss
+        logits = logits.transpose(1, 2)
+        tgt = tgt.transpose(1, 2)
+
         loss = self.loss_fn(logits, tgt)
 
         self.log(
@@ -45,8 +50,13 @@ class PretrainLM(pl.LightningModule):
         return loss
 
     def validation_step(self, batch, batch_idx):
-        src, tgt = batch
-        logits = self.model(src).transpose(1, 2)
+        src, tgt = batch  # (b_sz, s_len), (b_sz, s_len, v_sz)
+        logits = self.model(src)  # (b_sz, s_len, v_sz)
+
+        # Transpose for CrossEntropyLoss
+        logits = logits.transpose(1, 2)
+        tgt = tgt.transpose(1, 2)
+
         loss = self.loss_fn(logits, tgt).item()
 
         self.log(
@@ -59,7 +69,7 @@ class PretrainLM(pl.LightningModule):
             sync_dist=True,  # Not sure what this does
         )
 
-    def configure_optimizers(self):  # Change to LLAMA
+    def configure_optimizers(self):
         # From LLaMa
         lr = 3e-4
         betas = (0.9, 0.95)
