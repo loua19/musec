@@ -10,9 +10,9 @@ from dataclasses import dataclass
 
 @dataclass
 class ModelConfig:
-    d_model: int = 8
-    n_heads: int = 2
-    n_layers: int = 2
+    d_model: int = 528
+    n_heads: int = 22
+    n_layers: int = 48
     ff_mult: int = 4
     drop_p = 0.1
     max_seq_len: int = 2048
