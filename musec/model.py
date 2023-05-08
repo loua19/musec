@@ -132,7 +132,7 @@ class FusedEncoderBlock(nn.Module):
 
         # Required as we are not using a nn.Dropout layer
         if self.training:
-            att_dropout = self.drop_p
+            att_dropout = 0.0  # DEBUG
         else:
             att_dropout = 0.0
 
@@ -202,6 +202,7 @@ class Transformer(nn.Module):
         hidden_states = self.tok_embeddings(src)
 
         # Slices freqs_cis (pos embeddings) according to src seq_len
+        # Possible bug here
         assert src.shape[1] <= self.model_config.max_seq_len, "Too long."
         freqs_cis = torch.view_as_complex(self.freqs_cis)[: src.shape[1]]
 

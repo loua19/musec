@@ -161,7 +161,7 @@ class Tokenizer:
                 tgt.append([seq[idx + 1]])
             else:
                 buffer = _aug_buffer(buffer)
-                # random.shuffle(buffer)  DEBUG
+                random.shuffle(buffer)
 
                 # Add time_tok (or bos_tok or eos_tok) to src, tgt
                 src.append(seq[idx])
@@ -183,14 +183,14 @@ class Tokenizer:
         tgt.append([self.pad_tok])
 
         # Format into tensors (not very efficient)
-        # src_enc = self.encode(src)
-        # tgt_enc = torch.zeros(len(tgt), self.vocab_size)
-        # for i, labels in enumerate([self.encode(labels) for labels in tgt]):
-        #    tgt_enc[i, labels] = 1 / len(labels)
-
-        # Model DEBUG
         src_enc = self.encode(src)
-        tgt_enc = self.encode(src[:1] + [self.pad_tok])
+        tgt_enc = torch.zeros(len(tgt), self.vocab_size)
+        for i, labels in enumerate([self.encode(labels) for labels in tgt]):
+            tgt_enc[i, labels] = 1 / len(labels)
+
+        # Typical casual
+        # src_enc = self.encode(src)
+        # tgt_enc = self.encode(src[:1] + [self.pad_tok])
 
         return src_enc, tgt_enc
 

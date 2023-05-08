@@ -22,7 +22,7 @@ class PretrainLM(pl.LightningModule):
         self.save_hyperparameters()
 
         self.model = TransformerLM(model_config)
-        self.loss_fn = nn.CrossEntropyLoss()  # Not ignoring pad_tok
+        self.loss_fn = nn.CrossEntropyLoss()
 
     def forward(self, src: torch.Tensor):
         return self.model(src)
@@ -33,7 +33,7 @@ class PretrainLM(pl.LightningModule):
 
         # Transpose for CrossEntropyLoss
         logits = logits.transpose(1, 2)
-        # tgt = tgt.transpose(1, 2)  # DEBUG
+        tgt = tgt.transpose(1, 2)
 
         loss = self.loss_fn(logits, tgt)
 
@@ -55,7 +55,7 @@ class PretrainLM(pl.LightningModule):
 
         # Transpose for CrossEntropyLoss
         logits = logits.transpose(1, 2)
-        # tgt = tgt.transpose(1, 2)  # DEBUG
+        tgt = tgt.transpose(1, 2)
 
         loss = self.loss_fn(logits, tgt).item()
 
