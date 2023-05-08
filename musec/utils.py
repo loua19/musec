@@ -182,13 +182,15 @@ class Tokenizer:
         src.append(seq[idx])
         tgt.append([self.pad_tok])
 
-        # Format into tensors
+        # Format into tensors (not very efficient)
+        # src_enc = self.encode(src)
+        # tgt_enc = torch.zeros(len(tgt), self.vocab_size)
+        # for i, labels in enumerate([self.encode(labels) for labels in tgt]):
+        #    tgt_enc[i, labels] = 1 / len(labels)
+
+        # Model DEBUG
         src_enc = self.encode(src)
-        tgt_enc = torch.zeros(len(tgt), self.vocab_size)
-        for i, labels in enumerate(tgt):
-            num_labels = len(labels)
-            for label_idx in self.encode(labels):
-                tgt_enc[i, label_idx] = 1.0 / num_labels
+        tgt_enc = self.encode(src[:1] + [self.pad_tok])
 
         return src_enc, tgt_enc
 
@@ -243,7 +245,7 @@ class Dataset(torch.utils.data.Dataset):
                 data = json.load(f)
             else:
                 data = json.load(f)[key]
-        
+
         # Converts lists back into tuples (json converts tuples to lists)
         for seq in data:
             for i, tok in enumerate(seq):
