@@ -182,15 +182,15 @@ class Tokenizer:
         src.append(seq[idx])
         tgt.append([self.pad_tok])
 
-        # Format into tensors (not very efficient)
-        src_enc = self.encode(src)
-        tgt_enc = torch.zeros(len(tgt), self.vocab_size)
-        for i, labels in enumerate([self.encode(labels) for labels in tgt]):
-            tgt_enc[i, labels] = 1 / len(labels)
+        ## Format into tensors (not very efficient)
+        # src_enc = self.encode(src)
+        # tgt_enc = torch.zeros(len(tgt), self.vocab_size)
+        # for i, labels in enumerate([self.encode(labels) for labels in tgt]):
+        #    tgt_enc[i, labels] = 1 / len(labels)
 
         # Typical casual
-        # src_enc = self.encode(src)
-        # tgt_enc = self.encode(src[:1] + [self.pad_tok])
+        src_enc = self.encode(src)
+        tgt_enc = self.encode(src[:1] + [self.pad_tok])
 
         return src_enc, tgt_enc
 

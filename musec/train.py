@@ -33,7 +33,7 @@ class PretrainLM(pl.LightningModule):
 
         # Transpose for CrossEntropyLoss
         logits = logits.transpose(1, 2)
-        tgt = tgt.transpose(1, 2)
+        # tgt = tgt.transpose(1, 2)
 
         loss = self.loss_fn(logits, tgt)
 
@@ -55,7 +55,7 @@ class PretrainLM(pl.LightningModule):
 
         # Transpose for CrossEntropyLoss
         logits = logits.transpose(1, 2)
-        tgt = tgt.transpose(1, 2)
+        # tgt = tgt.transpose(1, 2)
 
         loss = self.loss_fn(logits, tgt).item()
 
@@ -124,7 +124,9 @@ def train(
         accelerator="gpu",
         precision=prec,
         max_epochs=epochs,
-        callbacks=[checkpoint_callback],
+        # callbacks=[checkpoint_callback],
+        enable_checkpointing=False,
+        overfit_batches=1,
     )
 
     # Train
