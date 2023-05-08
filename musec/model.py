@@ -7,6 +7,10 @@ from torch.nn import functional as F
 from typing import Tuple
 from dataclasses import dataclass
 
+# (debug) NOTE:
+# - Only differences between this and MUSE are freqs_cis being reshaped and
+#   pad_embed id being given to embedding layer.
+
 
 @dataclass
 class ModelConfig:
@@ -132,7 +136,7 @@ class FusedEncoderBlock(nn.Module):
 
         # Required as we are not using a nn.Dropout layer
         if self.training:
-            att_dropout = 0.0  # DEBUG
+            att_dropout = 0.0  # No attention dropout due to bug.
         else:
             att_dropout = 0.0
 
@@ -169,6 +173,7 @@ class Transformer(nn.Module):
         super().__init__()
 
         self.model_config = model_config
+        self.pad_id = model_config.pad_id
 
         # Used for Rotary Embeddings - see LLaMA
         d_head = model_config.d_model // model_config.n_heads
@@ -181,6 +186,7 @@ class Transformer(nn.Module):
         self.tok_embeddings = nn.Embedding(
             num_embeddings=model_config.vocab_size,
             embedding_dim=model_config.d_model,
+            padding_idx=model_config.pad_id,
         )
 
         self.out_layer_norm = nn.LayerNorm(model_config.d_model)
@@ -200,11 +206,7 @@ class Transformer(nn.Module):
                 d_model).
         """
         hidden_states = self.tok_embeddings(src)
-
-        # Slices freqs_cis (pos embeddings) according to src seq_len
-        # Possible bug here
-        assert src.shape[1] <= self.model_config.max_seq_len, "Too long."
-        freqs_cis = torch.view_as_complex(self.freqs_cis)[: src.shape[1]]
+        freqs_cis = torch.view_as_complex(self.freqs_cis)
 
         # Implements gradient checkpoints on Encoder Layers.
         if self.model_config.grad_checkpoint is True:
