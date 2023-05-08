@@ -33,7 +33,7 @@ class PretrainLM(pl.LightningModule):
 
         # Transpose for CrossEntropyLoss
         logits = logits.transpose(1, 2)
-        tgt = tgt.transpose(1, 2)
+        # tgt = tgt.transpose(1, 2)  # DEBUG
 
         loss = self.loss_fn(logits, tgt)
 
@@ -55,7 +55,7 @@ class PretrainLM(pl.LightningModule):
 
         # Transpose for CrossEntropyLoss
         logits = logits.transpose(1, 2)
-        tgt = tgt.transpose(1, 2)
+        # tgt = tgt.transpose(1, 2)  # DEBUG
 
         loss = self.loss_fn(logits, tgt).item()
 
@@ -70,25 +70,7 @@ class PretrainLM(pl.LightningModule):
         )
 
     def configure_optimizers(self):
-        # From LLaMa
-        lr = 3e-4
-        betas = (0.9, 0.95)
-        weight_decay = 0.1
-        T_max = 10
-        optimizer = torch.optim.Adam(
-            params=self.model.parameters(),
-            lr=lr,
-            betas=betas,
-            weight_decay=weight_decay,
-        )
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimizer=optimizer,
-            T_max=T_max,
-            eta_min=0.1 * lr,
-            verbose=True,
-        )
-
-        return {"optimizer": optimizer, "lr_scheduler": scheduler}
+        return torch.optim.Adam(self.model.parameters(), lr=self.lr)
 
 
 def train(
