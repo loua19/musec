@@ -70,7 +70,7 @@ class PretrainLM(pl.LightningModule):
         )
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.model.parameters(), lr=self.lr)
+        return torch.optim.Adam(self.model.parameters(), lr=3e-4)
 
 
 def train(
