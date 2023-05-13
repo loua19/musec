@@ -10,6 +10,9 @@ from dataclasses import dataclass
 # (debug) NOTE:
 # - Only differences between this and MUSE are freqs_cis being reshaped and
 #   pad_embed id being given to embedding layer.
+# - The problem is most likely with how cross entropy loss is working with
+#   multiple labels... it doesn't go to zero loss
+# - It might be down to the layer-norm before the lm-head messing everything up.
 
 
 @dataclass

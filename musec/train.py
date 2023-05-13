@@ -22,7 +22,8 @@ class PretrainLM(pl.LightningModule):
         self.save_hyperparameters()
 
         self.model = TransformerLM(model_config)
-        self.loss_fn = nn.CrossEntropyLoss()
+        # self.loss_fn = nn.CrossEntropyLoss()
+        self.loss_fn = nn.KLDivLoss()
 
     def forward(self, src: torch.Tensor):
         return self.model(src)
