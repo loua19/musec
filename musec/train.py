@@ -20,10 +20,8 @@ class PretrainLM(pl.LightningModule):
     def __init__(self, model_config: ModelConfig):
         super().__init__()
         self.save_hyperparameters()
-
         self.model = TransformerLM(model_config)
-        # self.loss_fn = nn.CrossEntropyLoss()
-        self.loss_fn = nn.KLDivLoss()
+        self.loss_fn = nn.CrossEntropyLoss()
 
     def forward(self, src: torch.Tensor):
         return self.model(src)
@@ -34,9 +32,15 @@ class PretrainLM(pl.LightningModule):
 
         # Transpose for CrossEntropyLoss
         logits = logits.transpose(1, 2)
-        # tgt = tgt.transpose(1, 2)
-
+        tgt = tgt.transpose(1, 2)
         loss = self.loss_fn(logits, tgt)
+
+        # Debug
+        # probs = nn.functional.softmax(logits, dim=1)
+        # print(src[0, 103:110])
+        # print(tgt[0, :, 103])
+        # print(torch.round(probs[0, :, 103], decimals=3))
+        # print(loss.item())
 
         self.log(
             "train_loss",
@@ -56,8 +60,7 @@ class PretrainLM(pl.LightningModule):
 
         # Transpose for CrossEntropyLoss
         logits = logits.transpose(1, 2)
-        # tgt = tgt.transpose(1, 2)
-
+        tgt = tgt.transpose(1, 2)
         loss = self.loss_fn(logits, tgt).item()
 
         self.log(
@@ -132,20 +135,6 @@ def train(
 
     # Train
     trainer.fit(model, dataloader_train, dataloader_val)
-
-
-def get_torch_module(load_path: str):
-    """Extracts the PyTorch module from a checkpointed Lightning module.
-
-    Args:
-        load_path (str): Load path for checkpointed Lightning module.
-
-    Returns:
-        nn.Module: Module extracted from self.module
-    """
-    lightning_module = PretrainLM.load_from_checkpoint(load_path)
-
-    return lightning_module.model
 
 
 def parse_arguments():
