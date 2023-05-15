@@ -161,7 +161,7 @@ class Tokenizer:
                 tgt.append([seq[idx + 1]])
             else:
                 buffer = _aug_buffer(buffer)
-                random.shuffle(buffer)  # DEBUG
+                random.shuffle(buffer)
 
                 # Add time_tok (or bos_tok or eos_tok) to src, tgt
                 src.append(seq[idx])

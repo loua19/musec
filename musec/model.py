@@ -200,7 +200,7 @@ class Transformer(nn.Module):
                 d_model).
         """
         hidden_states = self.tok_embeddings(src)
-        freqs_cis = torch.view_as_complex(self.freqs_cis)
+
         # Slices freqs_cis (pos embeddings) according to src seq_len
         assert src.shape[1] <= self.model_config.max_seq_len, "Too long."
         freqs_cis = torch.view_as_complex(self.freqs_cis)[: src.shape[1]]
