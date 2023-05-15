@@ -7,13 +7,6 @@ from torch.nn import functional as F
 from typing import Tuple
 from dataclasses import dataclass
 
-# (debug) NOTE:
-# - Only differences between this and MUSE are freqs_cis being reshaped and
-#   pad_embed id being given to embedding layer.
-# - The problem is most likely with how cross entropy loss is working with
-#   multiple labels... it doesn't go to zero loss
-# - It might be down to the layer-norm before the lm-head messing everything up.
-
 
 @dataclass
 class ModelConfig:
@@ -176,7 +169,6 @@ class Transformer(nn.Module):
         super().__init__()
 
         self.model_config = model_config
-        self.pad_id = model_config.pad_id
 
         # Used for Rotary Embeddings - see LLaMA
         d_head = model_config.d_model // model_config.n_heads
@@ -189,7 +181,6 @@ class Transformer(nn.Module):
         self.tok_embeddings = nn.Embedding(
             num_embeddings=model_config.vocab_size,
             embedding_dim=model_config.d_model,
-            padding_idx=model_config.pad_id,
         )
 
         self.out_layer_norm = nn.LayerNorm(model_config.d_model)
@@ -210,6 +201,9 @@ class Transformer(nn.Module):
         """
         hidden_states = self.tok_embeddings(src)
         freqs_cis = torch.view_as_complex(self.freqs_cis)
+        # Slices freqs_cis (pos embeddings) according to src seq_len
+        assert src.shape[1] <= self.model_config.max_seq_len, "Too long."
+        freqs_cis = torch.view_as_complex(self.freqs_cis)[: src.shape[1]]
 
         # Implements gradient checkpoints on Encoder Layers.
         if self.model_config.grad_checkpoint is True:

@@ -128,9 +128,7 @@ def train(
         accelerator="gpu",
         precision=prec,
         max_epochs=epochs,
-        # callbacks=[checkpoint_callback],
-        enable_checkpointing=False,
-        overfit_batches=1,
+        callbacks=[checkpoint_callback],
     )
 
     # Train
