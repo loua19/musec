@@ -17,7 +17,7 @@ class ModelConfig:
     drop_p = 0.1
     max_seq_len: int = 2048
     stride_len: int = 256
-    grad_checkpoint: bool = True
+    bool = True
 
     # Set according to tokenizer
     vocab_size: int = -1

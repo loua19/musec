@@ -27,12 +27,13 @@ def lazy_sample(
         probs = torch.nn.functional.softmax(logits, dim=0)
         next = torch.multinomial(probs, num_samples=1)
         res = torch.cat((res, next), dim=-1)
+        print(tokenizer.id_to_tok[next.item()])
 
     res = tokenizer.decode(res)
     if piano_roll is True:
         return pyroll.PianoRoll.from_seq(res)
     else:
-        return tokenizer.decode(res)
+        return res
 
 
 def sampale_causal(model_path: str, prompt_path: str):
@@ -42,9 +43,12 @@ def sampale_causal(model_path: str, prompt_path: str):
     model = get_torch_module(model_path).cuda()
     model.eval()
 
-    # Load prompts
-    with open(prompt_path) as f:
-        prompts = json.load(f)
+    # Load prompts if provided
+    if prompt_path is None:
+        prompts = [["<S>"]] * 10
+    else:
+        with open(prompt_path) as f:
+            prompts = json.load(f)
 
     prompt_len = 100
     for i, prompt in enumerate(prompts):
@@ -76,7 +80,7 @@ def get_torch_module(load_path: str):
 def parse_arguments():
     argp = argparse.ArgumentParser()
     argp.add_argument("--model_path", type=str, default="models/params.ckpt")
-    argp.add_argument("--prompt_path", type=str, default="data/prompts.json")
+    argp.add_argument("--prompt_path")
     kwargs = vars(argp.parse_args())
 
     return kwargs

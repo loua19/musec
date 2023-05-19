@@ -84,7 +84,7 @@ def train(
     gpus: int,
     epochs: int,
 ):
-    batch_size = 16
+    batch_size = 32
     model_config = ModelConfig()
     tokenizer = Tokenizer(model_config)
 
@@ -115,7 +115,7 @@ def train(
     v100_re = re.compile(r"[vV]100")
     if a100_re.search(torch.cuda.get_device_name(0)):
         print("A100 detected")
-        prec = "bf16"
+        prec = "bf16-mixed"
     elif v100_re.search(torch.cuda.get_device_name(0)):
         print("V100 detected")
         prec = "16-mixed"
