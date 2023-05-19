@@ -84,7 +84,7 @@ def train(
     gpus: int,
     epochs: int,
 ):
-    batch_size = 32
+    batch_size = 16
     model_config = ModelConfig()
     tokenizer = Tokenizer(model_config)
 
