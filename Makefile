@@ -11,7 +11,8 @@ init: folders
 	pip install -r req-dev.txt
 
 data: folders
-	gsutil cp gs://muse-model/museC_data/test_data.json data/train.json
+	gsutil cp gs://muse-model/musec/train.json data/train.json
+	gsutil cp gs://muse-model/musec/prompts.json data/prompts.json
 	
 params: init
 	@echo "getting params"
