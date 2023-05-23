@@ -73,8 +73,8 @@ def sampale_causal(model_path: str, prompt_path: str):
         print(f"Done {i+1}/{len(prompts)}")
         res_p_roll = pyroll.PianoRoll.from_seq(res)
         prompt_p_roll = pyroll.PianoRoll.from_seq(prompt)
-        res_mid = res_p_roll.to_midi()
-        prompt_mid = prompt_p_roll.to_midi()
+        res_mid = res_p_roll.to_midi(tempo_factor=1.5)
+        prompt_mid = prompt_p_roll.to_midi(tempo_factor=1.5)
         res_mid.save(f"samples/res{i+1}.mid")
         prompt_mid.save(f"samples/prompt{i+1}.mid")
 
