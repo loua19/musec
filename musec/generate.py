@@ -11,6 +11,7 @@ from utils import Tokenizer
 from train import PretrainLM
 
 
+@torch.autocast(device_type="cuda", dtype=torch.float16)
 def lazy_sample(
     prompt: list,
     model: TransformerLM,
@@ -50,7 +51,13 @@ def sampale_causal(model_path: str, prompt_path: str):
         with open(prompt_path) as f:
             prompts = json.load(f)
 
-    prompt_len = 100
+        # Format into tuples
+        for prompt in prompts:
+            for i, tok in enumerate(prompt):
+                if isinstance(tok, list):
+                    prompt[i] = tuple(tok)
+
+    prompt_len = 250
     for i, prompt in enumerate(prompts):
         assert tokenizer.unk_tok not in tokenizer.decode(
             tokenizer.encode(prompt)
